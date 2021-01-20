@@ -1,4 +1,4 @@
-import gmpy
+import gmpy2 as gmpy
 import math
 import Crypto.Util.number
 import Crypto.Random.random
@@ -6,11 +6,11 @@ from random import seed
 from random import randint
 
 def Square_rem(a, p):
-    e = (p-1) // 2
+    e = int((p-1) / 2)
     return Binary_exp(a, e, p)
     
 def Square_root(a, p):
-    e = (p+1) // 4
+    e = int((p+1) / 4)
     return Binary_exp(a, e, p)
 
 def Binary_exp(a, e, p):
@@ -115,15 +115,13 @@ def Generate_elliptic_curve(p):
     return A, B
 
 def Generate_random_point(A, B, p):
-    y = 1
-    while y == 1:
-        while True:
-            x = Generate_random_number(0, p-1)
-            fx = ((x ** 3) + (A * x) + B) % p
+    while True:
+        x = Generate_random_number(0, p-1)
+        fx = ((x ** 3) + (A * x) + B) % p
 
-            if Square_rem(fx, p):
-                break
-        y = Square_root(fx, p)
+        if Square_rem(fx, p):
+            break
+    y = Square_root(fx, p)
 
     return x, y
 
