@@ -6,11 +6,11 @@ from random import seed
 from random import randint
 
 def Square_rem(a, p):
-    e = int((p-1) / 2)
+    e = int((p-1) // 2)
     return Binary_exp(a, e, p)
     
 def Square_root(a, p):
-    e = int((p+1) / 4)
+    e = int((p+1) // 4)
     return Binary_exp(a, e, p)
 
 def Binary_exp(a, e, p):
@@ -76,7 +76,7 @@ def NP(Px, Py, A, B, p, n):
                 Rx, Ry = Add_points(Rx, Ry, Qx, Qy, A, B, p)
                 n = n - 1
         Qx, Qy = Add_points(Qx, Qy, Qx, Qy, A, B, p)
-        n = n / 2
+        n = n // 2
 
     return Rx, Ry
 
@@ -115,6 +115,7 @@ def Generate_elliptic_curve(p):
     return A, B
 
 def Generate_random_point(A, B, p):
+
     while True:
         x = Generate_random_number(0, p-1)
         fx = ((x ** 3) + (A * x) + B) % p
@@ -161,14 +162,29 @@ def Decrypt(C1x, C1y, C2x, C2y, A, B, p, x):
     PMx, PMy = Add_points(C2x, C2y, rxC1x, rxC1y, A, B, p)
     return PMx, PMy
 
+M=12345687830759287537983407028730982034912830917489250923743249876643687391111111111122233
+u=30
+N=0
+
 p = Generate_random_prime(300)
 A, B = Generate_elliptic_curve(p)
-Px, Py = Generate_random_point(A, B, p)
-Qx, Qy, x = Generate_keypair(Px, Py, A, B, p)
 
-M=11111111111111111111
-N=0
-u=50
+while True:
+    u = Generate_random_number(30, 50)-1
+    Px, Py = Generate_random_point(A, B, p)
+    if Py == 1:
+        p = Generate_random_prime(300)
+        A, B = Generate_elliptic_curve(p)
+        continue
+    L, R, P_belongs = Calculate_left_right(Px, Py, A, B, p)
+    if not P_belongs:
+        continue
+    PMx, PMy = Encode(M, N, u, A, B, p)
+    L, R, M_belongs = Calculate_left_right(PMx, PMy, A, B, p)
+    if P_belongs and M_belongs:
+        break
+
+Qx, Qy, x = Generate_keypair(Px, Py, A, B, p)
 
 print("\n=== Generate ===")
 print("p  =", p)
@@ -179,12 +195,15 @@ print("Py =", Py)
 print("Qx =", Qx)
 print("Qy =", Qy)
 print("x  =", x)
+print("u = ", u)
 
 print("\n=== Encoding ===")
 PMx, PMy = Encode(M, N, u, A, B, p)
 print("Message (plain) =",M)
 print("PMx             =", PMx)
 print("PMy             =", PMy)
+
+L, R, istrue_m = Calculate_left_right(PMx, PMy, A, B, p)
 
 print("\n=== Encryption ===")
 C1x, C1y, C2x, C2y = Encrypt(Px, Py, Qx, Qy, PMx, PMy, A, B, p)
@@ -202,3 +221,12 @@ print("\n=== Decoding ===")
 Decoded_X, Decoded_Y = Decode(Decrypted_X, Decrypted_Y, u)
 print("Decoded X =", Decoded_X)
 print("Decoded Y =", Decoded_Y)
+
+if P_belongs:
+    print("[Px, Py] NALEŻY do krzywej")
+else:
+    print("[Px, Py] NIE NALEŻY do krzywej")
+if M_belongs:
+    print("[PMx, PMy] NALEŻY do krzywej")
+else:
+    print("[PMx, PMy] NIE NALEŻY do krzywej")
